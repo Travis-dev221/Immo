@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VENTURE — site immobilier (Next.js + Prisma + MySQL / XAMPP)
 
-## Getting Started
+## 1. Base de données avec le fichier SQL (sans ligne de commande Prisma obligatoire)
 
-First, run the development server:
+1. Démarrez **MySQL** dans le panneau **XAMPP**.
+2. Ouvrez **phpMyAdmin** : [http://localhost/phpmyadmin](http://localhost/phpmyadmin)
+3. Onglet **Importer** → choisissez le fichier  
+   **`database/venture.sql`**  
+   (vous pouvez aussi ouvrir ce fichier dans un éditeur, copier tout le texte, onglet **SQL**, coller, exécuter).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Ce fichier :
+
+- crée la base **`venture`** (utf8mb4) ;
+- crée toutes les tables (User, Property, Contact, favoris, sessions NextAuth, etc.) ;
+- insère des **données de démo** (utilisateurs + annonces).
+
+**Comptes démo** (mot de passe partout : **`demo123456`**) :
+
+- `admin@venture.demo` — administrateur  
+- `agent@venture.demo` — agent  
+- `user@venture.demo` — utilisateur  
+
+## 2. Fichier `.env`
+
+Dans le dossier `venture` :
+
+```powershell
+copy .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Vérifiez **`DATABASE_URL`** (souvent `mysql://root:@localhost:3306/venture` si le mot de passe root est vide).  
+Renseignez **`AUTH_SECRET`** (phrase longue, obligatoire pour la connexion).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 3. Lancer le site
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```powershell
+cd venture
+npm install --legacy-peer-deps
+npm run dev
+```
 
-## Learn More
+Ouvrez [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+### Si vous modifiez le schéma Prisma plus tard
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Après un changement dans `prisma/schema.prisma`, alignez la base avec :
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```powershell
+npm run db:push
+```
 
-## Deploy on Vercel
+(Tant que vous n’avez pas modifié le schéma, l’import de **`database/venture.sql`** suffit.)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Données démo uniquement via Node (alternative au SQL)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Si vous préférez créer les tables avec Prisma puis remplir avec le script :
+
+```powershell
+npm run db:push
+npm run db:seed
+```
+
+---
+
+## Scripts utiles
+
+| Commande | Action |
+|----------|--------|
+| `npm run db:push` | Met à jour les tables selon `schema.prisma` |
+| `npm run db:seed` | Remplit des données démo (nécessite tables vides ou cohérentes) |
+| `npm run db:studio` | Prisma Studio |
+| `npm run dev` | Serveur de développement |
+
+---
+
+## Fichiers
+
+| Fichier / dossier | Rôle |
+|-------------------|------|
+| **`database/venture.sql`** | **À importer dans phpMyAdmin** — schéma + démo |
+| `prisma/schema.prisma` | Modèles utilisés par l’application |
+| `.env.example` | Exemple de configuration |
+
+---
+
+## Notes
+
+- Pas de Docker dans ce projet : uniquement **XAMPP** (ou tout autre MySQL compatible).
+- Les images d’annonces sont stockées en **JSON** (liste d’URLs).
+- **SMTP** et **Cloudinary** restent optionnels (voir `.env.example`).

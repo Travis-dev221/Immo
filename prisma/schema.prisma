@@ -1,0 +1,134 @@
+// Schéma VENTURE — MySQL (XAMPP / MariaDB)
+// Import initial : database/venture.sql
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  AGENT
+  ADMIN
+}
+
+enum PropertyType {
+  SALE
+  RENT
+}
+
+enum PropertyStatus {
+  PENDING
+  PUBLISHED
+  SOLD
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  role          Role      @default(USER)
+  avatar        String?
+  phone         String?
+  createdAt     DateTime  @default(now())
+
+  accounts   Account[]
+  sessions   Session[]
+  properties Property[]
+  favorites  Favorite[]
+}
+
+model Property {
+  id           String         @id @default(cuid())
+  title        String
+  description  String         @db.Text
+  price        Float
+  surface      Float
+  rooms        Int
+  bedrooms     Int
+  address      String
+  city         String
+  postalCode   String
+  latitude     Float
+  longitude    Float
+  type         PropertyType
+  status       PropertyStatus @default(PENDING)
+  images       Json @default("[]")
+  viewCount    Int            @default(0)
+  contactCount Int            @default(0)
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites    Favorite[]
+  contacts     Contact[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([city])
+  @@index([type, status])
+  @@index([latitude, longitude])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  userId     String
+  propertyId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, propertyId])
+}
+
+model Contact {
+  id         String    @id @default(cuid())
+  name       String
+  email      String
+  message    String      @db.Text
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  createdAt  DateTime  @default(now())
+
+  @@index([propertyId])
+}
