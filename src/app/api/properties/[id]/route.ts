@@ -77,10 +77,15 @@ export async function PATCH(req: Request, { params }: Params) {
     if (data.status && !isAdmin) {
       delete data.status;
     }
+    const { images, ...rest } = data;
+    const updateData = {
+      ...rest,
+      ...(images ? { images: JSON.stringify(images) } : {}),
+    };
 
     const property = await prisma.property.update({
       where: { id },
-      data,
+      data: updateData,
     });
 
     return NextResponse.json(property);

@@ -8,10 +8,18 @@ const PHRASES = [
   "Investissez dans l'immobilier sereinement",
 ];
 
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1920&q=80&auto=format&fit=crop",
+];
+
 export function TypewriterHero() {
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
   const [showRest, setShowRest] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
 
   const phrase = PHRASES[phraseIndex] ?? "";
 
@@ -32,17 +40,27 @@ export function TypewriterHero() {
     return () => window.clearTimeout(t);
   }, [charIndex, phrase, phraseIndex, showRest]);
 
+  useEffect(() => {
+    const t = window.setInterval(() => {
+      setImageIndex((index) => (index + 1) % HERO_IMAGES.length);
+    }, 3000);
+
+    return () => window.clearInterval(t);
+  }, []);
+
   const visible = useMemo(() => phrase.slice(0, charIndex), [phrase, charIndex]);
 
   return (
     <div className="relative min-h-[72vh] overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url(https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1920&q=80&auto=format&fit=crop)",
-        }}
-      />
+      {HERO_IMAGES.map((image, index) => (
+        <div
+          key={image}
+          className={`absolute inset-0 bg-cover bg-center transition duration-1000 ease-in-out ${
+            imageIndex === index ? "scale-100 opacity-100" : "scale-105 opacity-0"
+          }`}
+          style={{ backgroundImage: `url(${image})` }}
+        />
+      ))}
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-zinc-950" />
       <div className="relative mx-auto flex min-h-[72vh] max-w-4xl flex-col justify-center px-4 pb-24 pt-28 text-center md:px-6">
         <p className="text-xs uppercase tracking-[0.35em] text-amber-200/90">Immobilier d’exception</p>

@@ -10,8 +10,8 @@
 -- Comptes démo (mot de passe : demo123456) :
 --   admin@venture.demo  |  agent@venture.demo  |  user@venture.demo
 -- =============================================================================
-
-USE u528796549_Immo;
+CREATE DATABASE IF NOT EXISTS `venture` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `venture`;
 
 SET FOREIGN_KEY_CHECKS = 0;
 

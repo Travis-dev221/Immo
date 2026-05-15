@@ -23,6 +23,26 @@ const empty = {
   imagesText: "",
 };
 
+type ApiErrorDetails = {
+  fieldErrors?: Record<string, string[] | undefined>;
+  formErrors?: string[];
+};
+
+function formatApiError(error: string, details?: ApiErrorDetails | string) {
+  if (typeof details === "string") {
+    return `${error} : ${details}`;
+  }
+  const fieldErrors = details?.fieldErrors ? Object.entries(details.fieldErrors) : [];
+  const firstFieldError = fieldErrors.find(([, messages]) => messages?.length);
+  if (firstFieldError?.[1]?.[0]) {
+    return `${error} : ${firstFieldError[0]} — ${firstFieldError[1][0]}`;
+  }
+  if (details?.formErrors?.[0]) {
+    return `${error} : ${details.formErrors[0]}`;
+  }
+  return error;
+}
+
 export function PropertyEditorForm({
   mode,
   propertyId,
@@ -55,6 +75,68 @@ export function PropertyEditorForm({
   const [values, setValues] = useState(defaults);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  async function onUploadImage(file: File) {
+    setUploading(true);
+    setError(null);
+
+    try {
+      let res = await fetch("/api/uploads/cloudinary-signature", {
+        method: "POST",
+      });
+
+      if (res.ok) {
+        const signatureData = await res.json();
+        const cloudinaryData = new FormData();
+        cloudinaryData.append("file", file);
+        cloudinaryData.append("api_key", signatureData.apiKey);
+        cloudinaryData.append("timestamp", String(signatureData.timestamp));
+        cloudinaryData.append("signature", signatureData.signature);
+        cloudinaryData.append("folder", signatureData.folder);
+
+        const cloudinaryRes = await fetch(`https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`, {
+          method: "POST",
+          body: cloudinaryData,
+        });
+        const cloudinaryResult = await cloudinaryRes.json();
+
+        if (!cloudinaryRes.ok) {
+          setError(cloudinaryResult.error?.message ?? "Upload Cloudinary impossible");
+          return;
+        }
+
+        setValues((v) => ({
+          ...v,
+          imagesText: [v.imagesText.trim(), cloudinaryResult.secure_url].filter(Boolean).join("\n"),
+        }));
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      res = await fetch("/api/uploads/properties", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error ?? "Upload impossible");
+        return;
+      }
+
+      setValues((v) => ({
+        ...v,
+        imagesText: [v.imagesText.trim(), data.url].filter(Boolean).join("\n"),
+      }));
+    } catch {
+      setError("Upload impossible");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -66,15 +148,15 @@ export function PropertyEditorForm({
       .filter(Boolean);
 
     const payload = {
-      title: values.title,
-      description: values.description,
+      title: values.title.trim(),
+      description: values.description.trim(),
       price: Number(values.price),
       surface: Number(values.surface),
       rooms: Number(values.rooms),
       bedrooms: Number(values.bedrooms),
-      address: values.address,
-      city: values.city,
-      postalCode: values.postalCode,
+      address: values.address.trim(),
+      city: values.city.trim(),
+      postalCode: values.postalCode.trim(),
       latitude: Number(values.latitude),
       longitude: Number(values.longitude),
       type: values.type,
@@ -91,7 +173,7 @@ export function PropertyEditorForm({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Enregistrement impossible");
+        setError(formatApiError(data.error ?? "Enregistrement impossible", data.details));
         setLoading(false);
         return;
       }
@@ -186,9 +268,9 @@ export function PropertyEditorForm({
           />
         </label>
         <label className="block text-sm">
-          <span className="text-xs text-zinc-500">Code postal</span>
+          <span className="text-xs text-zinc-500">Code postal ou zone</span>
           <input
-            required
+            placeholder="Ex : Mbour, Saly, 23000…"
             className="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-white"
             value={values.postalCode}
             onChange={(e) => setValues((v) => ({ ...v, postalCode: e.target.value }))}
@@ -229,6 +311,20 @@ export function PropertyEditorForm({
         </label>
         <label className="block text-sm md:col-span-2">
           <span className="text-xs text-zinc-500">Images (une URL HTTPS par ligne — Unsplash, Cloudinary…)</span>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            disabled={uploading}
+            className="mt-2 block w-full cursor-pointer rounded-xl border border-dashed border-white/15 bg-zinc-950 px-3 py-3 text-sm text-zinc-300 file:mr-4 file:rounded-full file:border-0 file:bg-amber-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-950 hover:border-amber-300/40 disabled:cursor-not-allowed disabled:opacity-60"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void onUploadImage(file);
+              e.currentTarget.value = "";
+            }}
+          />
+          <span className="mt-2 block text-xs text-zinc-500">
+            {uploading ? "Upload de l’image en cours…" : "Vous pouvez aussi coller une URL manuellement dans la zone ci-dessous."}
+          </span>
           <textarea
             rows={4}
             className="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-white"

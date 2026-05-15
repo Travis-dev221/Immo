@@ -10,7 +10,7 @@ export const propertyCreateSchema = z.object({
   bedrooms: z.coerce.number().int().min(0).max(50),
   address: z.string().min(3),
   city: z.string().min(2),
-  postalCode: z.string().min(4).max(12),
+  postalCode: z.string().max(30).default(""),
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
   type: z.nativeEnum(PropertyType),

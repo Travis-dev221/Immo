@@ -77,15 +77,42 @@ export default async function LocationPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold text-white">À louer</h1>
-          <p className="mt-2 text-sm text-zinc-400">{total} annonce(s) publiée(s).</p>
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-zinc-900 px-6 py-12 shadow-2xl shadow-black/20 md:px-10">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-35"
+          style={{
+            backgroundImage:
+              "url(https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=80&auto=format&fit=crop)",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/85 to-zinc-950/35" />
+        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs uppercase tracking-[0.35em] text-amber-300/90">Location immobilière</p>
+            <h1 className="mt-4 text-4xl font-semibold leading-tight text-white md:text-6xl">À louer</h1>
+            <p className="mt-4 text-base leading-7 text-zinc-300">
+              Trouvez une villa, un appartement ou une résidence prête à accueillir votre prochain projet de vie.
+            </p>
+            <p className="mt-3 text-sm text-zinc-400">{total} annonce(s) publiée(s).</p>
+          </div>
+          <Link href="/recherche-proche" className="inline-flex items-center justify-center rounded-full border border-amber-300/40 px-5 py-3 text-sm font-medium text-amber-200 transition hover:bg-amber-300/10">
+            Recherche dans un rayon
+          </Link>
         </div>
-        <Link href="/recherche-proche" className="text-sm text-amber-300 hover:text-amber-200">
-          Recherche dans un rayon (carte)
-        </Link>
-      </div>
+      </section>
+
+      <section className="mt-8 grid gap-4 md:grid-cols-3">
+        {[
+          ["Locations vérifiées", "Des biens publiés pour faciliter une décision rapide et sereine."],
+          ["Séjours et long terme", "Des options adaptées aux projets personnels, professionnels ou familiaux."],
+          ["Zones recherchées", "Saly, Ngaparou, Somone et les secteurs attractifs de la Petite-Côte."],
+        ].map(([title, text]) => (
+          <article key={title} className="rounded-2xl border border-white/10 bg-zinc-900/50 p-5">
+            <h2 className="text-base font-semibold text-white">{title}</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-400">{text}</p>
+          </article>
+        ))}
+      </section>
 
       <form className="mt-8 grid gap-3 rounded-2xl border border-white/10 bg-zinc-900/40 p-4 md:grid-cols-6" method="get">
         <input

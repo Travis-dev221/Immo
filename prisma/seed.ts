@@ -139,7 +139,7 @@ async function main() {
     });
     if (existing) continue;
     await prisma.property.create({
-      data: { ...s, userId: agent.id, viewCount: Math.floor(Math.random() * 200), contactCount: Math.floor(Math.random() * 15) },
+      data: { ...s, images: JSON.stringify(s.images), userId: agent.id, viewCount: Math.floor(Math.random() * 200), contactCount: Math.floor(Math.random() * 15) },
     });
   }
 

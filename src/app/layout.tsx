@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { CookieBanner } from "@/components/layout/CookieBanner";
 import { ScrollSideNumbers } from "@/components/layout/ScrollSideNumbers";
 import { SplashAnimation } from "@/components/layout/SplashAnimation";
+import { ScrollImageAnimations } from "@/components/layout/ScrollImageAnimations";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
     <html lang="fr" className="dark">
       <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-zinc-950 font-sans antialiased`}>
         <SplashAnimation />
+        <ScrollImageAnimations />
         <Providers>
           <ScrollSideNumbers />
           <SiteHeader />

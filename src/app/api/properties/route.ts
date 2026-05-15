@@ -4,6 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { propertyCreateSchema, propertyListQuerySchema } from "@/lib/validations/property";
 
+function getServerErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  return "Erreur inconnue";
+}
+
 export async function GET(req: Request) {
   try {
     const session = await auth();
@@ -71,7 +76,13 @@ export async function GET(req: Request) {
     });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Erreur serveur",
+        details: process.env.NODE_ENV === "development" ? getServerErrorMessage(e) : undefined,
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -85,6 +96,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Interdit" }, { status: 403 });
     }
 
+    const dbUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: session.user.id },
+          ...(session.user.email ? [{ email: session.user.email }] : []),
+        ],
+      },
+      select: { id: true, role: true },
+    });
+    if (!dbUser) {
+      return NextResponse.json({ error: "Utilisateur introuvable, reconnectez-vous" }, { status: 401 });
+    }
+    if (dbUser.role !== "AGENT" && dbUser.role !== "ADMIN") {
+      return NextResponse.json({ error: "Interdit" }, { status: 403 });
+    }
+
     const body = await req.json();
     const parsed = propertyCreateSchema.safeParse(body);
     if (!parsed.success) {
@@ -93,7 +120,7 @@ export async function POST(req: Request) {
 
     const data = parsed.data;
     const status =
-      session.user.role === "ADMIN" && data.status
+      dbUser.role === "ADMIN" && data.status
         ? data.status
         : PropertyStatus.PENDING;
 
@@ -112,14 +139,20 @@ export async function POST(req: Request) {
         longitude: data.longitude,
         type: data.type,
         status,
-        images: data.images,
-        userId: session.user.id,
+        images: JSON.stringify(data.images),
+        userId: dbUser.id,
       },
     });
 
     return NextResponse.json(property, { status: 201 });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Erreur serveur",
+        details: process.env.NODE_ENV === "development" ? getServerErrorMessage(e) : undefined,
+      },
+      { status: 500 },
+    );
   }
 }

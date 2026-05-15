@@ -95,7 +95,7 @@ model Property {
   longitude    Float
   type         PropertyType
   status       PropertyStatus @default(PENDING)
-  images       Json @default("[]")
+  images       String         @db.LongText
   viewCount    Int            @default(0)
   contactCount Int            @default(0)
   userId       String

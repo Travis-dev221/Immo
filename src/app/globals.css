@@ -16,3 +16,88 @@ body {
 .leaflet-container {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
+
+.scroll-image-reveal {
+  opacity: 0;
+  transform: translateY(72px) scale(0.88) rotateX(8deg);
+  transform-origin: center bottom;
+  filter: blur(16px) saturate(0.65) brightness(0.75);
+  transition:
+    opacity 1200ms ease,
+    transform 1200ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1200ms ease;
+  transition-delay: var(--scroll-image-delay, 0ms);
+  will-change: opacity, transform, filter;
+}
+
+.scroll-image-reveal-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0) saturate(1.08) brightness(1);
+}
+
+.scroll-text-reveal {
+  opacity: 0;
+  transform: translateY(42px);
+  filter: blur(8px);
+  transition:
+    opacity 850ms ease,
+    transform 850ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 850ms ease;
+  transition-delay: var(--scroll-text-delay, 0ms);
+  will-change: opacity, transform, filter;
+}
+
+.scroll-text-reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-image-reveal,
+  .scroll-text-reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+}
+
+.story-image-left {
+  opacity: 0;
+  transform: translateX(-180px) translateY(30px) scale(0.9) rotate(-6deg);
+  filter: blur(18px) brightness(0.7);
+  transition:
+    opacity 1300ms ease,
+    transform 1300ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1300ms ease;
+  will-change: opacity, transform, filter;
+}
+
+.story-image-right {
+  opacity: 0;
+  transform: translateX(180px) translateY(30px) scale(0.9) rotate(6deg);
+  filter: blur(18px) brightness(0.7);
+  transition:
+    opacity 1300ms 180ms ease,
+    transform 1300ms 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1300ms 180ms ease;
+  will-change: opacity, transform, filter;
+}
+
+.story-image-visible {
+  opacity: 1;
+  transform: translateX(0) translateY(0) scale(1) rotate(0deg);
+  filter: blur(0) brightness(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-image-left,
+  .story-image-right {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+}
